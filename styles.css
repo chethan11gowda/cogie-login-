@@ -491,7 +491,19 @@ body {
   }
 
   .auth__visual {
-    display: none;
+    display: flex;
+    margin: 0;
+    border-radius: 28px 28px 0 0;
+    min-height: 240px;
+    padding: 32px 32px 40px;
+  }
+
+  .auth__hero {
+    margin-top: 40px;
+  }
+  
+  .auth__hero-title {
+    font-size: clamp(1.8rem, 6vw, 2.2rem);
   }
 
   .auth__form-panel {
@@ -513,6 +525,20 @@ body {
     border-radius: 0;
     max-width: 100%;
     box-shadow: none;
+  }
+
+  .auth__visual {
+    border-radius: 0;
+    min-height: 220px;
+    padding: 28px 24px 32px;
+  }
+
+  .auth__hero {
+    margin-top: 24px;
+  }
+
+  .auth__eyebrow {
+    font-size: 10px;
   }
 
   .auth__form-panel {
