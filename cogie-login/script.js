@@ -1,22 +1,24 @@
 /**
- * Cogie — Login page behavior
- * Handles: password visibility toggle, client-side validation,
- * accessible error messaging, and a mock submit flow.
+ * Cogie — Multi-page behavior
  */
 
 (function () {
   "use strict";
 
-  const form = document.getElementById("login-form");
+  const form = document.querySelector("form.login-form");
+  if (!form) return; // Exit if no form found on page
+
   const emailInput = document.getElementById("email");
   const passwordInput = document.getElementById("password");
+  const fullnameInput = document.getElementById("fullname");
+  
   const emailError = document.getElementById("email-error");
   const passwordError = document.getElementById("password-error");
+  const fullnameError = document.getElementById("fullname-error");
+  
   const formStatus = document.getElementById("form-status");
   const toggleBtn = document.getElementById("toggle-password");
-  const iconEye = toggleBtn.querySelector(".icon-eye");
-  const iconEyeOff = toggleBtn.querySelector(".icon-eye-off");
-  const submitBtn = form.querySelector(".btn--primary");
+  const submitBtn = form.querySelector("button[type='submit']");
   const submitLabel = submitBtn.querySelector(".btn__label");
   const submitSpinner = submitBtn.querySelector(".btn__spinner");
 
@@ -25,19 +27,24 @@
   /* ---------------------------------------------------------------------
    * Password visibility toggle
    * ------------------------------------------------------------------- */
-  toggleBtn.addEventListener("click", () => {
-    const isPassword = passwordInput.type === "password";
-    passwordInput.type = isPassword ? "text" : "password";
-    toggleBtn.setAttribute("aria-pressed", String(isPassword));
-    toggleBtn.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
-    iconEye.hidden = isPassword;
-    iconEyeOff.hidden = !isPassword;
-  });
+  if (toggleBtn && passwordInput) {
+    toggleBtn.addEventListener("click", () => {
+      const iconEye = toggleBtn.querySelector(".icon-eye");
+      const iconEyeOff = toggleBtn.querySelector(".icon-eye-off");
+      const isPassword = passwordInput.type === "password";
+      passwordInput.type = isPassword ? "text" : "password";
+      toggleBtn.setAttribute("aria-pressed", String(isPassword));
+      toggleBtn.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+      if (iconEye) iconEye.hidden = isPassword;
+      if (iconEyeOff) iconEyeOff.hidden = !isPassword;
+    });
+  }
 
   /* ---------------------------------------------------------------------
    * Field-level validation helpers
    * ------------------------------------------------------------------- */
   function setError(input, errorEl, message) {
+    if (!input || !errorEl) return;
     if (message) {
       input.setAttribute("aria-invalid", "true");
       errorEl.textContent = message;
@@ -48,6 +55,7 @@
   }
 
   function validateEmail() {
+    if (!emailInput) return true;
     const value = emailInput.value.trim();
     if (!value) {
       setError(emailInput, emailError, "Email is required.");
@@ -62,6 +70,7 @@
   }
 
   function validatePassword() {
+    if (!passwordInput) return true;
     const value = passwordInput.value;
     if (!value) {
       setError(passwordInput, passwordError, "Password is required.");
@@ -75,17 +84,38 @@
     return true;
   }
 
-  // Validate on blur (don't nag while the user is still typing the first pass)
-  emailInput.addEventListener("blur", validateEmail);
-  passwordInput.addEventListener("blur", validatePassword);
+  function validateFullname() {
+    if (!fullnameInput) return true;
+    const value = fullnameInput.value.trim();
+    if (!value) {
+      setError(fullnameInput, fullnameError, "Full name is required.");
+      return false;
+    }
+    setError(fullnameInput, fullnameError, "");
+    return true;
+  }
+
+  // Validate on blur
+  if (emailInput) emailInput.addEventListener("blur", validateEmail);
+  if (passwordInput) passwordInput.addEventListener("blur", validatePassword);
+  if (fullnameInput) fullnameInput.addEventListener("blur", validateFullname);
 
   // Clear an error as soon as it's fixed
-  emailInput.addEventListener("input", () => {
-    if (emailInput.getAttribute("aria-invalid") === "true") validateEmail();
-  });
-  passwordInput.addEventListener("input", () => {
-    if (passwordInput.getAttribute("aria-invalid") === "true") validatePassword();
-  });
+  if (emailInput) {
+    emailInput.addEventListener("input", () => {
+      if (emailInput.getAttribute("aria-invalid") === "true") validateEmail();
+    });
+  }
+  if (passwordInput) {
+    passwordInput.addEventListener("input", () => {
+      if (passwordInput.getAttribute("aria-invalid") === "true") validatePassword();
+    });
+  }
+  if (fullnameInput) {
+    fullnameInput.addEventListener("input", () => {
+      if (fullnameInput.getAttribute("aria-invalid") === "true") validateFullname();
+    });
+  }
 
   /* ---------------------------------------------------------------------
    * Submit flow
@@ -95,28 +125,43 @@
 
     const isEmailValid = validateEmail();
     const isPasswordValid = validatePassword();
+    const isFullnameValid = validateFullname();
 
-    formStatus.dataset.state = "";
+    if (formStatus) formStatus.dataset.state = "";
 
-    if (!isEmailValid || !isPasswordValid) {
-      formStatus.textContent = "Please fix the highlighted fields and try again.";
-      const firstInvalid = !isEmailValid ? emailInput : passwordInput;
-      firstInvalid.focus();
+    if (!isEmailValid || !isPasswordValid || !isFullnameValid) {
+      if (formStatus) formStatus.textContent = "Please fix the highlighted fields and try again.";
+      const firstInvalid = [fullnameInput, emailInput, passwordInput].find(
+        (el) => el && el.getAttribute("aria-invalid") === "true"
+      );
+      if (firstInvalid) firstInvalid.focus();
       return;
     }
 
-    // Mock async submit (swap for a real API call)
-    formStatus.textContent = "";
+    // Mock async submit
+    if (formStatus) formStatus.textContent = "";
     submitBtn.disabled = true;
-    submitLabel.textContent = "Signing in…";
-    submitSpinner.hidden = false;
+    const originalLabel = submitLabel.textContent;
+    submitLabel.textContent = "Processing…";
+    if (submitSpinner) submitSpinner.hidden = false;
 
     setTimeout(() => {
       submitBtn.disabled = false;
-      submitLabel.textContent = "Sign In";
-      submitSpinner.hidden = true;
-      formStatus.dataset.state = "success";
-      formStatus.textContent = "Signed in successfully.";
+      submitLabel.textContent = originalLabel;
+      if (submitSpinner) submitSpinner.hidden = true;
+      if (formStatus) {
+        formStatus.dataset.state = "success";
+        formStatus.textContent = "Success!";
+      }
+      
+      // Redirect to dashboard if it's the login form
+      if (form.id === "login-form") {
+         window.location.href = "dashboard.html";
+      } else if (form.id === "signup-form") {
+         window.location.href = "dashboard.html";
+      } else if (form.id === "forgot-form") {
+         if (formStatus) formStatus.textContent = "Reset link sent to your email.";
+      }
     }, 1200);
   });
 })();
