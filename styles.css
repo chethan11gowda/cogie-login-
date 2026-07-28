@@ -506,15 +506,13 @@ body {
 @media (max-width: 480px) {
   body {
     padding: 0;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
   .auth {
     border-radius: 0;
     max-width: 100%;
     box-shadow: none;
-    min-height: 100vh;
-    overflow: visible;
   }
 
   .auth__form-panel {
